@@ -10,6 +10,10 @@
 
 #define nop2() {asm volatile ("nop" : "nop")}
 
+#define bool _Bool
+#define true 1
+#define false 0
+
 void delay_us(uint32_t us);
 void delay_ms(uint32_t ms);
 void ledInit();
