@@ -31,9 +31,13 @@ void colorimeterInit(){
 
 int main(void){
 	colorimeterInit();
+	uint8_t str[] = "f";
 
 	while(1){
 		delay_ms(200);
+		ledToggle();
+		SPI_SendData8(SPI1, 'a');
+		i2cWriteData(I2C1, 'j', str, 1); //will only send 'j' if nack is returned
 		ledToggle();
 	}
 }

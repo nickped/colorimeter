@@ -12,7 +12,7 @@ void buttonInit(){
 	GPIO_TypeDef portA, portB;
 	uint8_t used = 0;
 
-	******************************************************FIXME*************
+	//******************************************************FIXME*************
 }
 
 buttonTypeDef buttonRead(buttonDebounceTypeDef *debounceReg){

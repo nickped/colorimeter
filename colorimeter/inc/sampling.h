@@ -35,5 +35,4 @@ void lightRed();
 void lightBlue();
 void lightGreen();
 void lightNone();
-
 #endif /* SAMPLING_H_ */

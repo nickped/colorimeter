@@ -21,7 +21,7 @@ void spi1Init(){
 	GPIO_PinAFConfig(GPIOA, GPIO_PinSource6, GPIO_AF_0);
 	GPIO_PinAFConfig(GPIOA, GPIO_PinSource7, GPIO_AF_0);
 
-	spi.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_2;
+	spi.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_16;
 	spi.SPI_CPHA = SPI_CPHA_1Edge;
 	spi.SPI_CPOL = SPI_CPOL_Low;
 	spi.SPI_CRCPolynomial = 7; //**********************unsure**
@@ -35,10 +35,10 @@ void spi1Init(){
 
 	spiGpio.GPIO_Mode = GPIO_Mode_AF;
 	spiGpio.GPIO_OType = GPIO_OType_PP;
-	spiGpio.GPIO_Pin = GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7;
+	spiGpio.GPIO_Pin = GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5;
 	spiGpio.GPIO_PuPd = GPIO_PuPd_UP;
 	spiGpio.GPIO_Speed = GPIO_Speed_Level_2;
-	GPIO_Init(GPIOA, &spiGpio);
+	GPIO_Init(GPIOB, &spiGpio);
 }
 
 //TODO: Test

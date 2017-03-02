@@ -38,7 +38,10 @@ void i2c1Init(){
 	i2cGpio.GPIO_Mode = GPIO_Mode_AF;
 	i2cGpio.GPIO_OType = GPIO_OType_OD;
 	i2cGpio.GPIO_Pin = GPIO_Pin_8 | GPIO_Pin_9;
-	i2cGpio.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	//i2cGpio.GPIO_PuPd = GPIO_PuPd_NOPULL; ************************************
+	i2cGpio.GPIO_PuPd = GPIO_PuPd_UP;
+
+
 	i2cGpio.GPIO_Speed = GPIO_Speed_Level_3;
 	GPIO_Init(GPIOB, &i2cGpio);
 }
