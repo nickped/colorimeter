@@ -21,13 +21,13 @@ void spi1Init(){
 	GPIO_PinAFConfig(GPIOA, GPIO_PinSource6, GPIO_AF_0);
 	GPIO_PinAFConfig(GPIOA, GPIO_PinSource7, GPIO_AF_0);
 
-	spi.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_16;
+	spi.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_32;
 	spi.SPI_CPHA = SPI_CPHA_1Edge;
 	spi.SPI_CPOL = SPI_CPOL_Low;
-	spi.SPI_CRCPolynomial = 7; //**********************unsure**
+	spi.SPI_CRCPolynomial = 7;
 	spi.SPI_DataSize = SPI_DataSize_8b;
 	spi.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
-	spi.SPI_FirstBit = SPI_FirstBit_LSB;
+	spi.SPI_FirstBit = SPI_FirstBit_MSB;
 	spi.SPI_Mode = SPI_Mode_Master;
 	spi.SPI_NSS = SPI_NSS_Soft;
 	SPI_Init(SPI1, &spi);
