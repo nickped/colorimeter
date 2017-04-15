@@ -17,8 +17,15 @@
 #include "helper.h"
 #include "LCD.h"
 #include "bitMap.h"
+#include "usart.h"
 
 static settingsTypeDef setting;
+
+#define MAIN_MENU_SIZE 3
+static char mainMenu[][10] = {	"SAMPLE",
+								"MEMORY",
+								"BLUETOOTH",
+								"SLEEP"};
 
 void colorimeterInit(){
 	SystemInit();
@@ -26,6 +33,7 @@ void colorimeterInit(){
 	spi1Init();
 	ledInit();
 	lcdInit();
+	uart4Init();
 
 	GPIO_InitTypeDef portC;
 
@@ -44,62 +52,120 @@ void colorimeterInit(){
 	setting.blueTooth = OFF;
 }
 
-void displayPrint(){
-	static uint8_t testDisplayCnt = 0;
+void RGB2LCD(uint32_t red, uint32_t green, uint32_t blue){
+	uint32_t timer = 0;
+	uint32_t temp = 0;
 	lcdClear();
 	lcdHomeX();
 	lcdHomeY();
 
-	char2lcd(ASCII_DEF_R);
+	timer = 1;
+	char2lcd(char2bit('R'));
 	lcdColon();
 	lcdXAxis(2);
-	char2lcd((2*testDisplayCnt) % 10);
-	char2lcd((3*testDisplayCnt) % 10);
-	char2lcd((3*testDisplayCnt) % 10);
+	if(red){
+		while(red / timer)
+			timer *= 10;
 
+		timer /= 10;
+		while(timer){
+			temp = red / timer;
+			temp = temp % 10;
+			char2lcd(temp);
+			timer /= 10;
+		}
+	}
+	else
+		char2lcd(0);
+
+	timer = 1;
 	lcdLine(2);
 	lcdHomeX();
-	char2lcd(ASCII_DEF_G);
+	char2lcd(char2bit('G'));
 	lcdColon();
 	lcdXAxis(2);
-	char2lcd((2*testDisplayCnt) % 10);
-	char2lcd((1*testDisplayCnt) % 10);
-	char2lcd((3*testDisplayCnt) % 10);
+	if(green){
+		while(green / timer)
+			timer *= 10;
 
+		timer /= 10;
+		while(timer){
+			temp = green / timer;
+			temp = temp % 10;
+			char2lcd(temp);
+			timer /= 10;
+		}
+	}
+	else
+		char2lcd(0);
+
+	timer = 1;
 	lcdLine(4);
 	lcdHomeX();
-	char2lcd(ASCII_DEF_B);
+	char2lcd(char2bit('B'));
 	lcdColon();
 	lcdXAxis(2);
-	char2lcd((1*testDisplayCnt) % 10);
-	char2lcd((9*testDisplayCnt) % 10);
-	char2lcd((5*testDisplayCnt) % 10);
+	if(blue){
+		while(blue / timer)
+			timer *= 10;
 
-	testDisplayCnt++;
+		timer /= 10;
+		while(timer){
+			temp = blue / timer;
+			temp = temp % 10;
+			char2lcd(temp);
+			timer /= 10;
+		}
+	}
+	else
+		char2lcd(0);
+}
+
+bool displayMenu(uint32_t x, uint32_t y){
+	lcdClear();
+	lcdHomeX();
+	lcdHomeY();
+
+	switch(x){
+		case(0):
+				string2lcd(mainMenu[(!y) ? MAIN_MENU_SIZE : y-1]);
+
+				lcdLine(2);
+				lcdHomeX();
+				arrow2lcd();
+				string2lcd(mainMenu[y]);
+
+				lcdLine(4);
+				lcdHomeX();
+				string2lcd(mainMenu[((y+1) > MAIN_MENU_SIZE) ? 0 : y+1]);
+				break;
+		default:
+				return 1;
+	}
+	return 0;
 }
 
 int main(void){
 	colorimeterInit();
 	delay_ms(10);
 
-	uint16_t buttonStat = 0x0000;
-
-	displayPrint();
+//	uint16_t buttonStat = 0x0000;
 
 	ledToggle();
 
+/*	uint32_t red = 0,
+			 green = 0,
+			 blue = 0;*/
+	uint8_t temp = 0;
 	while(1){
-		if(GPIO_ReadInputData(GPIOC) == buttonStat) delay_ms(100);
-		else if(GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_12) == 0){
-			buttonStat = GPIO_ReadOutputData(GPIOC);
-			delay_ms(100);
-		}
-		else{
-			buttonStat = GPIO_ReadOutputData(GPIOC);
-			delay_ms(50);
-			ledToggle();
-			displayPrint();
-			ledToggle();
-		}
+		displayMenu(0,temp);
+		temp++;
+		if(temp > MAIN_MENU_SIZE) temp = 0;
+		delay_ms(1000);
+		/*RGB2LCD(red, green, blue);
+		red += 1;
+		green += 3;
+		blue += 5;
+		delay_ms(500);*/
 	}
 }

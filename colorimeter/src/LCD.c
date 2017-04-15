@@ -123,3 +123,18 @@ void char2lcd(uint8_t byte){
 		byte2lcd(ascii[byte][i]);
 	byte2lcd(0x00);
 }
+
+void string2lcd(char *str){
+	uint8_t length = strlen(str);
+	for(uint8_t i = 0; i < length; i++){
+		char2lcd(char2bit(str[i]));
+	}
+}
+
+void arrow2lcd(){
+	byte2lcd(0x41);
+	byte2lcd(0x22);
+	byte2lcd(0x14);
+	byte2lcd(0x08);
+	byte2lcd(0x00);
+}
