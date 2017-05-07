@@ -8,38 +8,51 @@
 #include "stm32f0xx.h"
 #include "buttons.h"
 
+//static uint32_t buttonDebounce = 0;
+
 void buttonInit(){
-	GPIO_TypeDef portA, portB;
-	uint8_t used = 0;
+	GPIO_InitTypeDef portC;
 
-	//******************************************************FIXME*************
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOC, ENABLE);
+
+	portC.GPIO_Mode = GPIO_Mode_IN;
+	portC.GPIO_OType = GPIO_OType_PP;
+	portC.GPIO_Pin = GPIO_Pin_10 | GPIO_Pin_11 | GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14;
+	portC.GPIO_PuPd = GPIO_PuPd_DOWN;
+	portC.GPIO_Speed = GPIO_Speed_Level_3;
+	GPIO_Init(GPIOC, &portC);
 }
 
-buttonTypeDef buttonRead(buttonDebounceTypeDef *debounceReg){
-	buttonTypeDef buttonPress;
+//doesn't debounce. adds delay if buttons are pressed
+uint8_t buttonRead(){
+	uint8_t currentButtonState =	(GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_10) << BUTTON1) |
+									(GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_11) << BUTTON2) |
+									(GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_12) << BUTTON3) |
+									(GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_13) << BUTTON4) |
+									(GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_14) << BUTTON5) ;
 
-	buttonPress = buttonState();
+	if(currentButtonState) delay_ms(100);
+	return currentButtonState;
 
-	debounceReg->button1 = (debounceReg->button1 << 1) | ((buttonPress.button1) ? 1 : 0);
-	debounceReg->button2 = (debounceReg->button2 << 1) | ((buttonPress.button2) ? 1 : 0);
-	debounceReg->button3 = (debounceReg->button3 << 1) | ((buttonPress.button3) ? 1 : 0);
-	debounceReg->button4 = (debounceReg->button4 << 1) | ((buttonPress.button4) ? 1 : 0);
 
-	buttonPress.button1 = (debounceReg->button1 == BUTTON_DEBOUNCE_NUM) ? true : false;
-	buttonPress.button2 = (debounceReg->button2 == BUTTON_DEBOUNCE_NUM) ? true : false;
-	buttonPress.button3 = (debounceReg->button3 == BUTTON_DEBOUNCE_NUM) ? true : false;
-	buttonPress.button4 = (debounceReg->button4 == BUTTON_DEBOUNCE_NUM) ? true : false;
+/*	buttonDebounce = (buttonDebounce >> 1) | GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_1);
+	if(buttonDebounce > 3) buttonDebounce = 0;
+	return (buttonDebounce) ? 1 : 0;*/
 
-	return buttonPress;
-}
+	//buttonDebounce = (buttonDebounce >> 1) | GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_1);
+	/*buttonDebounce = buttonDebounce >> 1;
+	buttonDebounce &= ~((1>>BUTTON1) | (1>>BUTTON2) | (1>>BUTTON3) | (1>>BUTTON4) | (1>>BUTTON5));
+	buttonDebounce |= 	(GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_1) >> BUTTON1) |
+						(GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_2) >> BUTTON2) |
+						(GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_3) >> BUTTON3) |
+						(GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_6) >> BUTTON4) |
+						(GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_7) >> BUTTON5) ;
 
-buttonTypeDef buttonState(){
-	buttonTypeDef button;
+	return ((buttonDebounce & (0x3F >>BUTTON1)) == (BUTTON_DEBOUNCE_NUM >> BUTTON1) ? 1 : 0);*/
 
-	button.button1 = GPIO_ReadInputDataBit(BUTTON_1_PORT, BUTTON_1_PIN);
-	button.button2 = GPIO_ReadInputDataBit(BUTTON_2_PORT, BUTTON_2_PIN);
-	button.button3 = GPIO_ReadInputDataBit(BUTTON_3_PORT, BUTTON_3_PIN);
-	button.button4 = GPIO_ReadInputDataBit(BUTTON_4_PORT, BUTTON_4_PIN);
-
-	return button;
+	/*return 	(((buttonDebounce<<BUTTON1) == BUTTON_DEBOUNCE_NUM) ? (1>>BUTTON1) : (0>>BUTTON1)) |
+			(((buttonDebounce<<BUTTON2) == BUTTON_DEBOUNCE_NUM) ? (1>>BUTTON2) : (0>>BUTTON2)) |
+			(((buttonDebounce<<BUTTON3) == BUTTON_DEBOUNCE_NUM) ? (1>>BUTTON3) : (0>>BUTTON3)) |
+			(((buttonDebounce<<BUTTON4) == BUTTON_DEBOUNCE_NUM) ? (1>>BUTTON4) : (0>>BUTTON4)) |
+			(((buttonDebounce<<BUTTON5) == BUTTON_DEBOUNCE_NUM) ? (1>>BUTTON5) : (0>>BUTTON5)) ;*/
 }

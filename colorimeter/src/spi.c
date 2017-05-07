@@ -16,10 +16,17 @@ void spi1Init(){
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
 
+	/*
 	//configure PA5, PA6, and PA7 for alternative function
 	GPIO_PinAFConfig(GPIOA, GPIO_PinSource5, GPIO_AF_0);
 	GPIO_PinAFConfig(GPIOA, GPIO_PinSource6, GPIO_AF_0);
 	GPIO_PinAFConfig(GPIOA, GPIO_PinSource7, GPIO_AF_0);
+	*/
+
+	//configure PB3, PA4, and PA5
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource3, GPIO_AF_0);
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource4, GPIO_AF_0);
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource5, GPIO_AF_0);
 
 	spi.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_32;
 	spi.SPI_CPHA = SPI_CPHA_1Edge;

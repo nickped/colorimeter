@@ -8,6 +8,7 @@
 #ifndef USART_H_
 #define USART_H_
 
-void uart4Init();
+void uart1Init();
+void uart1Send(char *buffer, uint32_t count);
 
 #endif /* USART_H_ */

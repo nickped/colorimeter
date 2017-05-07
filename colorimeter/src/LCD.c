@@ -18,14 +18,14 @@ void lcdInit(){
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE);
 
 	/*
-	 * DC  -> PA9
+	 * DC  -> PA15
 	 * RST -> PA8
 	 * CE  -> PB10
 	 */
 
 	portA.GPIO_Mode = GPIO_Mode_OUT;
 	portA.GPIO_OType = GPIO_OType_PP;
-	portA.GPIO_Pin = GPIO_Pin_8 | GPIO_Pin_9;
+	portA.GPIO_Pin = GPIO_Pin_8 | GPIO_Pin_15;
 	portA.GPIO_PuPd = GPIO_PuPd_NOPULL;
 	portA.GPIO_Speed = GPIO_Speed_Level_2;
 
@@ -78,9 +78,9 @@ void lcdColon(){
 
 void lcdControl (uint8_t byte){
 	GPIO_ResetBits(GPIOB, GPIO_Pin_10);
-	GPIO_ResetBits(GPIOA, GPIO_Pin_9);
+	GPIO_ResetBits(GPIOA, GPIO_Pin_15);
 	spi1Transfer(byte);
-	GPIO_SetBits(GPIOA, GPIO_Pin_9);
+	GPIO_SetBits(GPIOA, GPIO_Pin_15);
 	GPIO_SetBits(GPIOB, GPIO_Pin_10);
 }
 
@@ -101,7 +101,7 @@ void lcdHomeY(){
 }
 
 void byte2lcd(uint8_t byte){
-	GPIO_SetBits(GPIOA, GPIO_Pin_9);
+	GPIO_SetBits(GPIOA, GPIO_Pin_15);
 	GPIO_ResetBits(GPIOB, GPIO_Pin_10);
 
 	spi1Transfer(byte);
@@ -109,7 +109,7 @@ void byte2lcd(uint8_t byte){
 }
 
 void lcdClear(){
-	GPIO_SetBits(GPIOA, GPIO_Pin_9);
+	GPIO_SetBits(GPIOA, GPIO_Pin_15);
 	GPIO_ResetBits(GPIOB, GPIO_Pin_10);
 
 	for(uint16_t i = 0; i < (6 * 84); i++)
@@ -127,7 +127,8 @@ void char2lcd(uint8_t byte){
 void string2lcd(char *str){
 	uint8_t length = strlen(str);
 	for(uint8_t i = 0; i < length; i++){
-		char2lcd(char2bit(str[i]));
+		if(str[i] == ' ') space2lcd();
+		else char2lcd(char2bit(str[i]));
 	}
 }
 
@@ -136,5 +137,13 @@ void arrow2lcd(){
 	byte2lcd(0x22);
 	byte2lcd(0x14);
 	byte2lcd(0x08);
+	byte2lcd(0x00);
+}
+
+void space2lcd(){
+	byte2lcd(0x00);
+	byte2lcd(0x00);
+	byte2lcd(0x00);
+	byte2lcd(0x00);
 	byte2lcd(0x00);
 }

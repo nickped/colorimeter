@@ -11,39 +11,15 @@
 #include "stm32f0xx.h"
 #include "helper.h"
 
-#define BUTTON_DEBOUNCE_NUM 0x00FF //number of ones on the lsb side is the amount of debounce cycles
+#define BUTTON_DEBOUNCE_NUM 0x1F //number of debounce cycles. Can't be more than 5 bits. (eg. 0x04 = 3 debounce cycles)
 
-//All ports has to either be PORTA or PORTB
-#define BUTTON_1_PORT GPIOB
-#define BUTTON_2_PORT GPIOB
-#define BUTTON_3_PORT GPIOB
-#define BUTTON_4_PORT GPIOB
+#define BUTTON1 0   //PC10
+#define BUTTON2 1   //PC11
+#define BUTTON3 2   //PC12
+#define BUTTON4 3   //PC13
+#define BUTTON5 4   //PC14
 
-#define BUTTON_1_PIN 0
-#define BUTTON_2_PIN 1
-#define BUTTON_3_PIN 2
-#define BUTTON_4_PIN 3
-
-typedef struct{
-	uint16_t button1;
-	uint16_t button2;
-	uint16_t button3;
-	uint16_t button4;
-}buttonDebounceTypeDef;
-
-typedef struct{
-	bool button1;
-	bool button2;
-	bool button3;
-	bool button4;
-}buttonTypeDef;
-
-//Public functions
 void buttonInit();
-buttonTypeDef buttonRead(buttonDebounceTypeDef *debounceReg);
-
-//Private functions
-buttonTypeDef buttonState();
-
+uint8_t buttonRead();
 
 #endif /* BUTTONS_H_ */
