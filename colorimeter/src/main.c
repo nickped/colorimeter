@@ -26,14 +26,11 @@
 #include "sampling.h"
 #include "adc.h"
 
-#define SAMPLE_SIZE 255
-
 static settingsTypeDef setting;
 
 
-static uint16_t *samples;  // bit0=valid, bit1=red, bit2=green, bit3=blue, bit4-7=room, bit8-15=randomVal
+static sample_t *samples;  // bit0=valid, bit1=red, bit2=green, bit3=blue, bit4-7=room, bit8-15=randomVal
 static uint16_t sampleNum = 0;
-static uint8_t roomNum = 0;
 
 #define MAIN_MENU_SIZE 3 //size -1
 static char mainMenu[][15] = {	"SAMPLE",
@@ -68,18 +65,33 @@ static char sleepMenu [][15] = {		"ENABLE/DISABLE",
  * Sub Menu End
  */
 
+
+
+
 /*****************
- * Room Names
+ * Interrupts
  */
-#define ROOM_NAME_SIZE 5
-static char roomName [][15] = {	"BEDROOM",
-								"KITCHEN",
-								"BATHROOM",
-								"OFFICE",
-								"LIVING ROOM"};
+void USART1_IRQHandler(){
+	volatile char i;
+	char str[50];
+	i = USART_ReceiveData(USART1);
+	if((i <= 'Z') && (i >= 'A')){
+		sprintf(str, "%i,%i,%i,%s\n", 	(sampleNum) ? samples[sampleNum-1].red : 0,
+										(sampleNum) ? samples[sampleNum-1].green : 0,
+										(sampleNum) ? samples[sampleNum-1].blue : 0,
+										roomName[(sampleNum) ? samples[sampleNum-1].room : 0]);
+		uart1Send(str, strlen(str));
+	}
+	USART_ClearITPendingBit(USART1, USART_IT_RXNE);
+	//delay_ms(200);
+	//uart1Send(btMessege, 5);
+}
 /*****************
- * Room names end
+ * Interrupts end
  */
+
+
+
 
 void colorimeterInit(){
 	SystemInit();
@@ -108,7 +120,7 @@ void colorimeterInit(){
 	setting.sleepTime = SETTINGS_SLEEPTIME_10min;
 	setting.blueTooth = OFF;
 
-	samples = calloc(SAMPLE_SIZE, sizeof(uint16_t));
+	samples = calloc(SAMPLE_SIZE, sizeof(sample_t));
 
 	nvicInit();
 }
@@ -183,6 +195,7 @@ void RGB2LCD(uint32_t red, uint32_t green, uint32_t blue){
 }
 
 bool displayMenu(uint32_t subMenuLevel, uint32_t subMenu, uint32_t y){
+	char str[5];
 	lcdClear();
 	lcdHomeX();
 	lcdHomeY();
@@ -258,6 +271,10 @@ bool displayMenu(uint32_t subMenuLevel, uint32_t subMenu, uint32_t y){
 		default:
 				return 1;
 	}
+
+	lcdLine(0);
+	sprintf(str, "%i", sampleNum);
+	str2lcdEndLine(str);
 	return 0;
 }
 
@@ -267,17 +284,13 @@ int main(void){
 
 	uint8_t menuLevel = 0,
 			subMenu = 0,
-			menueLoc;
-
-
-//	uint16_t buttonStat = 0x0000;
+			menuLoc = 0;
+	uint8_t buttonState = 0;
 
 	ledToggle();
 
-	uint8_t temp = 0;
-	uart1Send("Start", 5);
-	char val[10];
-	while(1){
+	displayMenu(menuLevel, subMenu, menuLoc);
+	/*while(1){
 		displayMenu(1, 3, temp);
 		temp++;
 		if(temp > SLEEP_MENU_SIZE) temp = 0;
@@ -290,9 +303,94 @@ int main(void){
 		sprintf(val, "%i\n", ADC_GetConversionValue(ADC1));
 		uart1Send(val, strlen(val));
 
-	}
+	}*/
 
 	while(1){
+		buttonState = buttonRead();
 
+		if(buttonState & BUTTON1) readSample(samples, &sampleNum); //instant button
+		else if(buttonState & BUTTON3) menuLevel = (menuLevel) ? --menuLevel : 0; //back button
+		else if(buttonState & BUTTON5){ //forword button
+			if(menuLevel < 1){
+				menuLevel++;
+				subMenu = menuLoc;
+				menuLoc = 0;
+			}
+			else{
+				switch(subMenu){
+				case(0):
+						switch(menuLoc){
+						case(0):
+								readSample(samples, sampleNum);
+								break;
+						case(1):
+								//TODO: this
+								break;
+						}
+						break;
+				case(1):
+						switch(menuLoc){
+						case(0):
+								displaySample(samples[sampleNum]);
+								break;
+						case(1):
+								sampleNum = (sampleNum) ? sampleNum-- : 0;
+								break;
+						case(2):
+								sampleNum = 0;
+						}
+						break;
+				case(2):
+						//TODO: this
+						break;
+				case(3):
+						//TODO: this
+						break;
+				}
+			}
+		}
+		else if(buttonState & BUTTON4) {
+			if(menuLoc) --menuLoc;
+			else{
+				if(menuLevel){
+					switch(subMenu){
+					case 0: //sample
+						menuLoc = SAMPLE_MENU_SIZE;
+						break;
+					case 1: //memory
+						menuLoc = MEMORY_MENU_SIZE;
+						break;
+					case 2: //bluetooth
+						menuLoc = BLUETOOTH_MENU_SIZE;
+						break;
+					case 3: //sleep
+						menuLoc = SLEEP_MENU_SIZE;
+					}
+				}
+				else
+					menuLoc = MAIN_MENU_SIZE;
+			}
+		}
+		else if(buttonState & BUTTON2){ //down button
+			if(!menuLevel) menuLoc = (menuLoc == MAIN_MENU_SIZE) ? 0 : ++menuLoc;
+			else{
+				switch(subMenu){
+				case(0):
+						menuLoc = (menuLoc == SAMPLE_MENU_SIZE) ? 0 : ++menuLoc;
+						break;
+				case(1):
+						menuLoc = (menuLoc == MEMORY_MENU_SIZE) ? 0 : ++menuLoc;
+						break;
+				case(2):
+						menuLoc = (menuLoc == BLUETOOTH_MENU_SIZE) ? 0 : ++menuLoc;
+						break;
+				case(3):
+						menuLoc = (menuLoc == SLEEP_MENU_SIZE) ? 0 : ++menuLoc;
+						break;
+				}
+			}
+		}
+
+		if(buttonState) displayMenu(menuLevel, subMenu, menuLoc);
 	}
 }

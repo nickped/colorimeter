@@ -10,6 +10,7 @@
 #include "spi.h"
 #include "bitMap.h"
 #include "helper.h"
+#include <string.h>
 
 void lcdInit(){
 	GPIO_InitTypeDef portA, portB;
@@ -49,26 +50,6 @@ void lcdInit(){
 	lcdControl(0b00001100);
 
 	lcdClear();
-
-	/******TESTING******/
-	/*char2lcd(0);
-	char2lcd(1);
-	char2lcd(2);
-	char2lcd(3);
-	char2lcd(4);
-	char2lcd(5);
-	char2lcd(6);
-	char2lcd(7);
-	char2lcd(8);
-	char2lcd(9);
-	lcdLine(2);
-	char2lcd(ASCII_DEF_R);
-	char2lcd(ASCII_DEF_G);
-	char2lcd(ASCII_DEF_B);
-	lcdColon();
-	while(1);*/
-	/******END OF TESTING******/
-
 }
 
 void lcdColon(){
@@ -128,6 +109,7 @@ void string2lcd(char *str){
 	uint8_t length = strlen(str);
 	for(uint8_t i = 0; i < length; i++){
 		if(str[i] == ' ') space2lcd();
+		else if(str[i] == ':') lcdColon();
 		else char2lcd(char2bit(str[i]));
 	}
 }
@@ -146,4 +128,14 @@ void space2lcd(){
 	byte2lcd(0x00);
 	byte2lcd(0x00);
 	byte2lcd(0x00);
+}
+
+void str2lcdEndLine(char *str){
+	uint8_t count = strlen(str);
+
+	lcdXAxis(20-count);
+	for(uint8_t i = 0; i < count; i++){
+		if(str[i] == ' ') space2lcd();
+		else char2lcd(char2bit(str[i]));
+	}
 }

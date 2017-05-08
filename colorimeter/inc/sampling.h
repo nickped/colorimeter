@@ -9,6 +9,7 @@
 #define SAMPLING_H_
 
 #include "stm32f0xx.h"
+#include "helper.h"
 
 typedef struct {
 	uint32_t red,
@@ -28,10 +29,13 @@ typedef struct {
 
 
 void sampleInit();
-uint16_t readSample(uint16_t *samples, uint16_t sampleNum, uint8_t roomNum);
+sample_t readSample(sample_t *samples, uint16_t *sampleNum);
+void displaySample(sample_t sample);
 uint16_t redRead();
 uint16_t greenRead();
 uint16_t blueRead();
+void showRoom(uint8_t x);
+uint8_t getRoom();
 
 /*
 //public functions

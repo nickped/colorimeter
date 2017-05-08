@@ -44,5 +44,6 @@ void lcdXAxis(uint8_t loc);
 void string2lcd(char *str);
 void arrow2lcd();
 void space2lcd();
+void str2lcdEndLine(char *str);
 
 #endif /* LCD_H_ */

@@ -7,6 +7,7 @@
 
 #include "stm32f0xx.h"
 #include "buttons.h"
+#include "usart.h"
 
 //static uint32_t buttonDebounce = 0;
 
@@ -17,19 +18,19 @@ void buttonInit(){
 
 	portC.GPIO_Mode = GPIO_Mode_IN;
 	portC.GPIO_OType = GPIO_OType_PP;
-	portC.GPIO_Pin = GPIO_Pin_10 | GPIO_Pin_11 | GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14;
+	portC.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_4;
 	portC.GPIO_PuPd = GPIO_PuPd_DOWN;
 	portC.GPIO_Speed = GPIO_Speed_Level_3;
-	GPIO_Init(GPIOC, &portC);
+	GPIO_Init(GPIOA, &portC);
 }
 
 //doesn't debounce. adds delay if buttons are pressed
 uint8_t buttonRead(){
-	uint8_t currentButtonState =	(GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_10) << BUTTON1) |
-									(GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_11) << BUTTON2) |
-									(GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_12) << BUTTON3) |
-									(GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_13) << BUTTON4) |
-									(GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_14) << BUTTON5) ;
+	uint8_t currentButtonState =	(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0) << 0) |
+									(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_1) << 1) |
+									(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_2) << 2) |
+									(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_3) << 3) |
+									(GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_4) << 4) ;
 
 	if(currentButtonState) delay_ms(100);
 	return currentButtonState;

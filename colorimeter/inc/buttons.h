@@ -13,11 +13,11 @@
 
 #define BUTTON_DEBOUNCE_NUM 0x1F //number of debounce cycles. Can't be more than 5 bits. (eg. 0x04 = 3 debounce cycles)
 
-#define BUTTON1 0   //PC10
-#define BUTTON2 1   //PC11
-#define BUTTON3 2   //PC12
-#define BUTTON4 3   //PC13
-#define BUTTON5 4   //PC14
+#define BUTTON1 1   //PC10
+#define BUTTON2 2   //PC11
+#define BUTTON3 4   //PC12
+#define BUTTON4 8   //PC13
+#define BUTTON5 16   //PC14
 
 void buttonInit();
 uint8_t buttonRead();

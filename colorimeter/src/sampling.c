@@ -8,12 +8,10 @@
 #include "sampling.h"
 #include "helper.h"
 #include "usart.h"
+#include "LCD.h"
+#include "buttons.h"
 #include <stdio.h>
 #include <string.h>
-
-/*extern uint16_t *samples,
-				sampleNum;
-extern uint8_t roomNum;*/
 
 /*public functions*/
 
@@ -39,66 +37,124 @@ void sampleInit(){
 
 }
 //msb is set if sample is taken
-uint16_t readSample(uint16_t *samples, uint16_t sampleNum, uint8_t roomNum){
-	uint16_t 	red = 0,
-				green = 0,
-				blue = 0;
+sample_t readSample(sample_t *samples, uint16_t *sampleNum){
+	sample_t read;
+	read.red = 0;
+	read.green = 0;
+	read.blue = 0;
+	read.room = 0;
 
-	uint16_t 	read = 0;
-
-	char test[20];
-
-	if((redRead() > AMBIANT_LIGHT) || (greenRead() > AMBIANT_LIGHT) || (blueRead() > AMBIANT_LIGHT)) return 0;
+	if((redRead() > AMBIANT_LIGHT) || (greenRead() > AMBIANT_LIGHT) || (blueRead() > AMBIANT_LIGHT) || (*sampleNum == SAMPLE_SIZE)) return read;
 
 	GPIO_WriteBit(GPIOC, GPIO_Pin_2, 0);
 
 	//red
 	GPIO_WriteBit(GPIOC, GPIO_Pin_0, 1);
 	GPIO_WriteBit(GPIOC, GPIO_Pin_1, 0);
-	delay_us(50);
-	red = redRead();
+	delay_ms(15);
+	read.blue = blueRead();
+	//read.red = redRead();
+	//clean
+	/*GPIO_WriteBit(GPIOC, GPIO_Pin_0, 0);
+	GPIO_WriteBit(GPIOC, GPIO_Pin_1, 0);
+	delay_ms(15);*/
 
 	//green
 	GPIO_WriteBit(GPIOC, GPIO_Pin_0, 0);
 	GPIO_WriteBit(GPIOC, GPIO_Pin_1, 1);
-	delay_us(50);
-	green = greenRead();
+	delay_ms(15);
+	read.green = greenRead();
+	//clean
+	/*GPIO_WriteBit(GPIOC, GPIO_Pin_0, 0);
+	GPIO_WriteBit(GPIOC, GPIO_Pin_1, 0);
+	delay_ms(15);*/
 
 	//blue
 	GPIO_WriteBit(GPIOC, GPIO_Pin_0, 1);
 	GPIO_WriteBit(GPIOC, GPIO_Pin_1, 1);
-	delay_us(50);
-	blue = blueRead();
+	delay_ms(15);
+	//read.blue = blueRead();
+	read.red = redRead();
+	//clean
+	/*GPIO_WriteBit(GPIOC, GPIO_Pin_0, 0);
+	GPIO_WriteBit(GPIOC, GPIO_Pin_1, 0);
+	delay_ms(15);*/
 
 	//clean
 	GPIO_WriteBit(GPIOC, GPIO_Pin_0, 0);
 	GPIO_WriteBit(GPIOC, GPIO_Pin_1, 0);
 
-	if((red > green) && (red > blue)) read |= 1<<1;
-	else if((green > red) && (green > blue)) read |= 1<<2;
-	else read |= 1<<3;
-
-	read |= 1;
-	read |= roomNum<<4;
-	//TODO: add randomVar
+	read.room = getRoom();
+	displaySample(read);
 
 
-	//********************************************************************************************
-	//TODO: modify circuit board
-	//OPAMP to MCU
-	//********************************************************************************************
-	sprintf(test, "R=%i\n", red);
-	uart1Send(test, strlen(test));
-	sprintf(test, "G=%i\n", green);
-	uart1Send(test, strlen(test));
-	sprintf(test, "B=%i\n", blue);
-	uart1Send(test, strlen(test));
-	samples[sampleNum] = read;
-	sampleNum++;
+	samples[*sampleNum] = read;
+	(*sampleNum)++;
 
 	return read;
 }
 
+void showRoom(uint8_t x){
+	lcdClear();
+	lcdLine(0);
+	lcdHomeX();
+	string2lcd(roomName[(!x) ? ROOM_NAME_SIZE : x-1]);
+
+	lcdLine(2);
+	lcdHomeX();
+	arrow2lcd();
+	string2lcd(roomName[x]);
+
+	lcdLine(4);
+	lcdHomeX();
+	string2lcd(roomName[((x+1) > ROOM_NAME_SIZE) ? 0 : x+1]);
+}
+
+uint8_t getRoom(){
+	uint8_t x = 0;
+
+	showRoom(x);
+
+	while(buttonRead() & BUTTON5);
+	delay_us(50);
+
+	for(uint8_t buttonState = 0; !(buttonState & BUTTON5); buttonState = buttonRead()){
+		if (buttonState) showRoom(x);
+
+		if(buttonState & BUTTON2){ //down
+			x = (x != ROOM_NAME_SIZE) ? ++x : 0;
+		}
+		else if(buttonState & BUTTON4){ //up
+			x = (x) ? x-1 : ROOM_NAME_SIZE;
+		}
+	}
+	return x;
+}
+
+void displaySample(sample_t read){
+	char str[20];
+
+	lcdClear();
+
+	lcdLine(0);
+	lcdHomeX();
+	sprintf(str, "RED: %i", read.red);
+	string2lcd(str);
+
+	lcdLine(2);
+	lcdHomeX();
+	sprintf(str, "GREEN: %i", read.green);
+	string2lcd(str);
+
+	lcdLine(4);
+	lcdHomeX();
+	sprintf(str, "BLUE: %i", read.blue);
+	string2lcd(str);
+
+	delay_ms(500);
+
+
+}
 
 uint16_t redRead(){
 	GPIO_WriteBit(GPIOC, GPIO_Pin_3, 1);

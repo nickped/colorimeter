@@ -7,6 +7,7 @@
 
 #include "stm32f0xx.h"
 
+
 void nvicInit(){
 	NVIC_InitTypeDef uartInt;
 
